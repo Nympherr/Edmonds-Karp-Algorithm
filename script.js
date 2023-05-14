@@ -1,15 +1,43 @@
 let maximumFlow = 0;
 
-function createNode(name,type,ableToReachNodes){
+class Node {
+    constructor(id){
+        this.id = id;
+        this.adjacent = {};
+    }
+}
 
-    let node = {
-        name: name,
-        type: type,
-        // ["name of the reachable node", "flow value", "reverse flow value", "capacity"]
-        ableToReachNodes: ableToReachNodes,
-    };
-    return node;
-};
+class Graph{
+    constructor(){
+        this.nodes = [];
+    }
+
+    addNode(id){
+        let node = new Node(id);
+        this.nodes.push(node);
+        return node;
+    }
+
+    getNode(id){
+        return this.nodes.find(node => node.id == id);
+    }
+
+    addEdge(source, destination, capacity){
+
+        let sourceNode = this.getNode(source) || this.addNode(source);
+        let destinationNode = this.getNode(destination) || this.addNode(destination);
+
+        sourceNode.adjacent[destination] = {
+            capacity: capacity,
+            flow: 0
+        };
+        destinationNode.adjacent[source] = {
+            capacity: 0,
+            flow: 0
+        }; 
+    }
+}
+
 
 function breadthFirstSearch(startNode, endNode){
     let queue = [];
