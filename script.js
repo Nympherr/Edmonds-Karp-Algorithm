@@ -1,4 +1,6 @@
 
+let maximumFlow = 0;
+
 class Node {
     constructor(id){
         this.id = id;
@@ -80,6 +82,7 @@ function checkIfNodeCanTravel(node, visitedArray){
 
     for(let key in node.adjacent){
         let edge = node.adjacent[key];
+        
         // For forward edges
         if (edge.capacity > 0 && edge.capacity > edge.flow && !visitedArray.has(key)) {
             return true;
@@ -123,35 +126,126 @@ function updatePathFlowValue(path,graph,lowestValue){
         edgeForward.flow += lowestValue;
         edgeBackward.flow += lowestValue;
     }
+    maximumFlow += lowestValue;
 }
 
+function startAlgorithm(graph, sourceId, destinationId) {
 
-// -------------_Testing----------------
+    let source = graph.getNode(sourceId);
+    let destination = graph.getNode(destinationId);
+    
+    while (true) {
+        let path = breadthFirstSearch(source, destination, graph);
+        if (!path) {
+            break;
+        }
+        
+        let pathLowestValue = findPathLowestValue(path, graph);
+        updatePathFlowValue(path, graph, pathLowestValue);
+    }
+    
+    return maximumFlow;
+}
+
+// ----------------Testing----------------
+
+// #1
+
+// let Graph1 = new Graph();
+
+// Graph1.addEdge('1','2',1000);
+// Graph1.addEdge('1','3',1000);
+// Graph1.addEdge('2','4',500);
+// Graph1.addEdge('3','4',500);
+
+// let node1 = Graph1.getNode('1');
+// let node2 = Graph1.getNode('2');
+// let node3 = Graph1.getNode('3');
+// let node4 = Graph1.getNode('4');
+
+// startAlgorithm(Graph1,'1','2');
+// console.log("Maximum flow: " + maximumFlow);
+
+// #2
+
+// let Graph1 = new Graph();
+
+// Graph1.addEdge('1','2',8);
+// Graph1.addEdge('1','3',8);
+// Graph1.addEdge('1','4',8);
+// Graph1.addEdge('2','3',6);
+// Graph1.addEdge('2','5',4);
+// Graph1.addEdge('3','4',4);
+// Graph1.addEdge('3','6',6);
+// Graph1.addEdge('4','5',7);
+// Graph1.addEdge('4','7',6);
+// Graph1.addEdge('5','7',5);
+// Graph1.addEdge('6','7',7);
+
+// let node1 = Graph1.getNode('1');
+// let node2 = Graph1.getNode('2');
+// let node3 = Graph1.getNode('3');
+// let node4 = Graph1.getNode('4');
+// let node5 = Graph1.getNode('5');
+// let node6 = Graph1.getNode('6');
+// let node7 = Graph1.getNode('7');
+
+// startAlgorithm(Graph1,'1','7');
+// console.log("Maximum flow: " + maximumFlow);
+
+
+// #3
 
 let Graph1 = new Graph();
-Graph1.addEdge('A','B',3);
-Graph1.addEdge('A','C',3);
-Graph1.addEdge('B','D',1);
 
-let node1 = Graph1.getNode('A');
-let node2 = Graph1.getNode('B');
-let node3 = Graph1.getNode('C');
-let node4 = Graph1.getNode('D');
+Graph1.addEdge('1','2',4);
+Graph1.addEdge('1','3',5);
+Graph1.addEdge('1','4',6);
+Graph1.addEdge('1','5',7);
+Graph1.addEdge('1','6',8);
 
-let testBFS = breadthFirstSearch(node1,node4,Graph1);
-console.log("Path: " + testBFS);
-let  testLowestValue = findPathLowestValue(testBFS,Graph1);
-console.log("LowValue: " + testLowestValue);
+Graph1.addEdge('2','4',3);
+Graph1.addEdge('2','9',5);
 
-console.log("Original values: ");
-console.log("Node1: " + node1.adjacent['B'].flow + "Capacity: " + node1.adjacent['B'].capacity);
-console.log("Node2: " + node2.adjacent['A'].flow + "Capacity: " + node2.adjacent['A'].capacity);
-console.log("Node2: " + node2.adjacent['D'].flow + "Capacity: " + node2.adjacent['D'].capacity);
-console.log("Node4: " + node4.adjacent['B'].flow + "Capacity: " + node4.adjacent['B'].capacity);
+Graph1.addEdge('3','8',9);
+Graph1.addEdge('3','9',10);
+Graph1.addEdge('3','11',4);
 
-let testUpdate = updatePathFlowValue(testBFS,Graph1,testLowestValue);
+Graph1.addEdge('4','5',7);
+Graph1.addEdge('4','8',6);
+Graph1.addEdge('4','10',4);
 
-console.log("Node1: " + node1.adjacent['B'].flow + "Capacity: " + node1.adjacent['B'].capacity);
-console.log("Node2: " + node2.adjacent['A'].flow + "Capacity: " + node2.adjacent['A'].capacity);
-console.log("Node2: " + node2.adjacent['D'].flow + "Capacity: " + node2.adjacent['D'].capacity);
-console.log("Node4: " + node4.adjacent['B'].flow + "Capacity: " + node4.adjacent['B'].capacity);
+Graph1.addEdge('5','3',5);
+Graph1.addEdge('5','7',4);
+
+Graph1.addEdge('6','3',7);
+Graph1.addEdge('6','7',4);
+
+Graph1.addEdge('7','10',8);
+Graph1.addEdge('7','12',7);
+
+Graph1.addEdge('8','11',6);
+Graph1.addEdge('8','12',5);
+
+Graph1.addEdge('9','10',4);
+Graph1.addEdge('9','12',4);
+
+Graph1.addEdge('10','12',6);
+
+Graph1.addEdge('11','12',3);
+
+let node1 = Graph1.getNode('1');
+let node2 = Graph1.getNode('2');
+let node3 = Graph1.getNode('3');
+let node4 = Graph1.getNode('4');
+let node5 = Graph1.getNode('5');
+let node6 = Graph1.getNode('6');
+let node7 = Graph1.getNode('7');
+let node8 = Graph1.getNode('8');
+let node9 = Graph1.getNode('9');
+let node10 = Graph1.getNode('10');
+let node11 = Graph1.getNode('11');
+let node12 = Graph1.getNode('12');
+
+startAlgorithm(Graph1,'1','12');
+console.log("Maximum flow: " + maximumFlow);
