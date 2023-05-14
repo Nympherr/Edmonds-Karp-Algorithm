@@ -1,4 +1,3 @@
-let maximumFlow = 0;
 
 class Node {
     constructor(id){
@@ -38,173 +37,121 @@ class Graph{
     }
 }
 
-
 function breadthFirstSearch(startNode,endNode, graph){
     let queue = [];
-    let visited = [];
+    let visited = new Set();  // changing to a Set for O(1) lookup
     let predecessor = {};
 
-    if(checkIfNodeCanTravel(startNode) == true){
-    queue.push(startNode);
-    visited.push(startNode.id);
+    if(checkIfNodeCanTravel(startNode, visited)){
+        queue.push(startNode);
+        visited.add(startNode.id);
+    } else { 
+        return false; 
     }
-    else{ return false; }
 
     while(queue.length > 0){
-
         let node = queue.shift();
 
         if(node.id == endNode.id){
             let path = [];
-            while(node != null){
-                path.unshift(node);
-                node = predecessor[node.id];
+            let currentNode = endNode.id;
+            while(currentNode != null){
+                path.unshift(currentNode);
+                currentNode = predecessor[currentNode];
             }
             return path;
         }
 
         for(let key in node.adjacent){
-            if(!visited.includes(key) &&  !queue.some(item => item.id === key)){
+            if(!visited.has(key)){
                 let neighbourNode = graph.getNode(key);
-                if(node.adjacent[key].capacity > node.adjacent[key].flow){
+                if(node.adjacent[key].capacity > node.adjacent[key].flow || node.adjacent[key].flow < 0){
                     queue.push(neighbourNode);
-                    visited.push(key);
-                    predecessor[key] = node;
+                    visited.add(key);
+                    predecessor[key] = node.id;
                 }
             }
-            else{ continue; }
         }
     }
     return false;
 }
 
-function checkIfNodeCanTravel(node){
+function checkIfNodeCanTravel(node, visitedArray){
 
     for(let key in node.adjacent){
-        if(node.adjacent[key].capacity > node.adjacent[key].flow){
+        let edge = node.adjacent[key];
+        // For forward edges
+        if (edge.capacity > 0 && edge.capacity > edge.flow && !visitedArray.has(key)) {
+            return true;
+        }
+        // For reverse edges
+        if (edge.capacity === 0 && edge.flow > 0 && !visitedArray.has(key)) {
             return true;
         }
     }
     return false;
 }
 
-// Because nodes have other reachable nodes sometimes in a path you may not know
-// from which node your node came from. This function will return a correct index
-// for every node in a path so that it would know with which flow value to work
-function findPathNodeIndex(nodePathArray){
-
-    let indexArray = [];
-
-    // checks the current node
-    for(let i = 0; i < nodePathArray.length - 1 ; i++){
-
-        // checks current node's all reachable nodes
-        for(let j = 0; j < nodePathArray[i].ableToReachNodes.length ; j++){
-
-                // checks at which index names are same
-                if(nodePathArray[i].ableToReachNodes[j][0].name == nodePathArray[i + 1].name){
-                    indexArray.push(j);
-                }
-        }
-    }
-    return indexArray;
-}
-
-function findPathLowestValue(nodePathArray,index){
-
-    let lowestValue = nodePathArray[0].ableToReachNodes[0][1];
-
-    for(let i = 1; i < nodePathArray.length - 1; i++){
-        if(nodePathArray[i].ableToReachNodes[index[i]][1] < lowestValue){
-            lowestValue = nodePathArray[i].ableToReachNodes[index[i]][1];
+function findPathLowestValue(path,graph){
+    let lowestValue = Infinity;
+    for(let i = 0; i < path.length - 1; i++){
+        let nodeId = path[i];
+        let nextNodeId = path[i+1];
+        let node = graph.getNode(nodeId);
+        let edge = node.adjacent[nextNodeId];
+        let remainingCapacity = edge.capacity - edge.flow;
+        if(remainingCapacity < lowestValue){
+            lowestValue = remainingCapacity;
         }
     }
     return lowestValue;
 }
 
-function updateFlowValue(nodePathArray,index,lowestValue){
-    
-        for(let i = 0; i < nodePathArray.length - 1; i++){
-            nodePathArray[i].ableToReachNodes[index[i]][1] -= lowestValue;
-            nodePathArray[i].ableToReachNodes[index[i]][2] += lowestValue;
-        }
-        maximumFlow += lowestValue;
-}
+function updatePathFlowValue(path,graph,lowestValue){
 
-function programStart(startNode,endNode){
+    for(let i = 0; i < path.length - 1; i++){
 
-    let status = true;
+        let nodeId = path[i];
+        let nextNodeId = path[i+1];
+        let node = graph.getNode(nodeId);
+        let nextNode = graph.getNode(nextNodeId);
 
-    while(status == true){
-        let path = breadthFirstSearch(startNode,endNode);
-        if(path == false){
-            status = false;
-            console.log("Maximum flow: " + maximumFlow);
-        }
-        else{
-            let index = findPathNodeIndex(path);
-            let lowestValue = findPathLowestValue(path,index);
-            updateFlowValue(path,index,lowestValue);
-        }
+
+        let edgeForward = node.adjacent[nextNodeId];
+        let edgeBackward = nextNode.adjacent[nodeId];
+
+        edgeForward.flow += lowestValue;
+        edgeBackward.flow += lowestValue;
     }
 }
 
-//------------------Testing------------------//
 
-// Try #1
+// -------------_Testing----------------
 
-// let Node1 = createNode("Node1","source");
-// let Node2 = createNode("Node2","node");
-// let Node3 = createNode("Node3","node");
-// let Node4 = createNode("Node4","destination",[]);
+let Graph1 = new Graph();
+Graph1.addEdge('A','B',3);
+Graph1.addEdge('A','C',3);
+Graph1.addEdge('B','D',1);
 
-// Node1.ableToReachNodes = [[Node2,1000,0,1000],[Node3,1000,0,1000]];
-// Node2.ableToReachNodes = [[Node4,500,0,500]];
-// Node3.ableToReachNodes = [[Node4,500,0,500]];
+let node1 = Graph1.getNode('A');
+let node2 = Graph1.getNode('B');
+let node3 = Graph1.getNode('C');
+let node4 = Graph1.getNode('D');
 
-// Try #2
+let testBFS = breadthFirstSearch(node1,node4,Graph1);
+console.log("Path: " + testBFS);
+let  testLowestValue = findPathLowestValue(testBFS,Graph1);
+console.log("LowValue: " + testLowestValue);
 
-// let Node1 = createNode("Node1","source");
-// let Node2 = createNode("Node2","node");
-// let Node3 = createNode("Node3","node");
-// let Node4 = createNode("Node4","node");
-// let Node5 = createNode("Node5","node");
-// let Node6 = createNode("Node6","node");
-// let Node7 = createNode("Node7","destination",[]);
+console.log("Original values: ");
+console.log("Node1: " + node1.adjacent['B'].flow + "Capacity: " + node1.adjacent['B'].capacity);
+console.log("Node2: " + node2.adjacent['A'].flow + "Capacity: " + node2.adjacent['A'].capacity);
+console.log("Node2: " + node2.adjacent['D'].flow + "Capacity: " + node2.adjacent['D'].capacity);
+console.log("Node4: " + node4.adjacent['B'].flow + "Capacity: " + node4.adjacent['B'].capacity);
 
-// Node1.ableToReachNodes = [[Node2,8,0,8],[Node3,8,0,8],[Node4,8,0,8]];
-// Node2.ableToReachNodes = [[Node3,6,0,6],[Node5,4,0,4]];
-// Node3.ableToReachNodes = [[Node4,4,0,4],[Node6,6,0,6]];
-// Node4.ableToReachNodes = [[Node5,7,0,7],[Node7,6,0,6]];
-// Node5.ableToReachNodes = [[Node7,5,0,5]];
-// Node6.ableToReachNodes = [[Node7,7,0,7]];
+let testUpdate = updatePathFlowValue(testBFS,Graph1,testLowestValue);
 
-// Try #3
-
-// let Node1 = createNode("Node1","source");
-// let Node2 = createNode("Node2","node");
-// let Node3 = createNode("Node3","node");
-// let Node4 = createNode("Node4","node");
-// let Node5 = createNode("Node5","node");
-// let Node6 = createNode("Node6","node");
-// let Node7 = createNode("Node7","node");
-// let Node8 = createNode("Node8","node");
-// let Node9 = createNode("Node9","node");
-// let Node10 = createNode("Node10","node");
-// let Node11 = createNode("Node11","node");
-// let Node12 = createNode("Node12","destination");
-
-// Node1.ableToReachNodes = [[Node2,4,0,4],[Node3,5,0,5],[Node4,6,0,6],[Node5,7,0,7],[Node6,8,0,8]];
-// Node2.ableToReachNodes = [[Node4,3,0,3],[Node9,5,0,5]];
-// Node3.ableToReachNodes = [[Node8,9,0,9],[Node9,10,0,10],[Node11,4,0,4]];
-// Node4.ableToReachNodes = [[Node5,7,0,7],[Node8,6,0,6],[Node10,4,0,4]];
-// Node5.ableToReachNodes = [[Node3,5,0,5],[Node7,4,0,4]];
-// Node6.ableToReachNodes = [[Node3,7,0,7],[Node7,4,0,4]];
-// Node7.ableToReachNodes = [[Node10,8,0,8],[Node12,7,0,7]];
-// Node8.ableToReachNodes = [[Node11,6,0,6],[Node12,5,0,5]];
-// Node9.ableToReachNodes = [[Node10,4,0,4],[Node12,4,0,4]];
-// Node10.ableToReachNodes = [[Node12,6,0,6]];
-// Node11.ableToReachNodes = [[Node12,3,0,3]];
-
-
-// programStart(Node1,Node12);
+console.log("Node1: " + node1.adjacent['B'].flow + "Capacity: " + node1.adjacent['B'].capacity);
+console.log("Node2: " + node2.adjacent['A'].flow + "Capacity: " + node2.adjacent['A'].capacity);
+console.log("Node2: " + node2.adjacent['D'].flow + "Capacity: " + node2.adjacent['D'].capacity);
+console.log("Node4: " + node4.adjacent['B'].flow + "Capacity: " + node4.adjacent['B'].capacity);
