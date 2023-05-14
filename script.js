@@ -27,15 +27,22 @@ class Graph{
 
         let sourceNode = this.getNode(source) || this.addNode(source);
         let destinationNode = this.getNode(destination) || this.addNode(destination);
-
-        sourceNode.adjacent[destination] = {
-            capacity: capacity,
-            flow: 0
-        };
-        destinationNode.adjacent[source] = {
-            capacity: 0,
-            flow: 0
-        }; 
+    
+        if (!sourceNode.adjacent[destination]) {
+            sourceNode.adjacent[destination] = {
+                capacity: capacity,
+                flow: 0
+            };
+        } else {
+            sourceNode.adjacent[destination].capacity = capacity;
+        }
+    
+        if (!destinationNode.adjacent[source]) {
+            destinationNode.adjacent[source] = {
+                capacity: 0,
+                flow: 0
+            };
+        }
     }
 }
 
@@ -164,8 +171,10 @@ function startAlgorithm(graph, sourceId, destinationId) {
 
 // let Graph1 = new Graph();
 
-// Graph1.addEdge('1','2',1000);
-// Graph1.addEdge('1','3',1000);
+// Graph1.addEdge('1','2',450);
+// Graph1.addEdge('1','3',450);
+// Graph1.addEdge('2','3',10);
+// Graph1.addEdge('3','2',10);
 // Graph1.addEdge('2','4',500);
 // Graph1.addEdge('3','4',500);
 
@@ -174,7 +183,7 @@ function startAlgorithm(graph, sourceId, destinationId) {
 // let node3 = Graph1.getNode('3');
 // let node4 = Graph1.getNode('4');
 
-// startAlgorithm(Graph1,'1','2');
+// startAlgorithm(Graph1,'1','4');
 // console.log("Maximum flow: " + maximumFlow);
 
 // #2
