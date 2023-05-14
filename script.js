@@ -39,14 +39,14 @@ class Graph{
 }
 
 
-function breadthFirstSearch(startNode, endNode){
+function breadthFirstSearch(startNode,endNode, graph){
     let queue = [];
     let visited = [];
     let predecessor = {};
 
-    if(checkIfNodeCanTravelGeneral(startNode) == true){
+    if(checkIfNodeCanTravel(startNode) == true){
     queue.push(startNode);
-    visited.push(startNode.name);
+    visited.push(startNode.id);
     }
     else{ return false; }
 
@@ -54,65 +54,38 @@ function breadthFirstSearch(startNode, endNode){
 
         let node = queue.shift();
 
-        if(node.name == endNode.name){
+        if(node.id == endNode.id){
             let path = [];
             while(node != null){
                 path.unshift(node);
-                node = predecessor[node.name];
+                node = predecessor[node.id];
             }
-            return path; // path from startNode to endNode
+            return path;
         }
 
-            for(let i = 0; i < node.ableToReachNodes.length; i++){
-
-                let nextNode;
-                if(checkIfNodeCanTravelParticular(node,i) == true){
-                    nextNode = node.ableToReachNodes[i][0];
+        for(let key in node.adjacent){
+            if(!visited.includes(key) &&  !queue.some(item => item.id === key)){
+                let neighbourNode = graph.getNode(key);
+                if(node.adjacent[key].capacity > node.adjacent[key].flow){
+                    queue.push(neighbourNode);
+                    visited.push(key);
+                    predecessor[key] = node;
                 }
-                else{ continue; }
-
-                if (!visited.includes(nextNode.name)) {
-                    let canTravel = true;
-                    let pred = predecessor[node.name];
-                    while(pred != null){
-                        let index = pred.ableToReachNodes.findIndex(n => n[0].name == node.name);
-                        if(index != -1 && pred.ableToReachNodes[index][1] <= 0){
-                            canTravel = false;
-                            break;
-                        }
-                        pred = predecessor[pred.name];
-                    }
-                    if(canTravel){
-                        predecessor[nextNode.name] = node;
-                        queue.push(nextNode);
-                        visited.push(nextNode.name);
-                    }
-                }
+            }
+            else{ continue; }
         }
     }
     return false;
-};
-
-function checkIfNodeCanTravelParticular(node,index){
-
-    if(node.ableToReachNodes[index][1] > 0){ return true; }
-    else{ return false; }
-
 }
 
-function checkIfNodeCanTravelGeneral(node){
+function checkIfNodeCanTravel(node){
 
-    let canTravel = false;
-
-    for(let i=0; i < node.ableToReachNodes.length ; i++){
-
-        if(node.ableToReachNodes[i][1] > 0){
-            canTravel = true;
-            return canTravel;
+    for(let key in node.adjacent){
+        if(node.adjacent[key].capacity > node.adjacent[key].flow){
+            return true;
         }
     }
-
-    return canTravel;
+    return false;
 }
 
 // Because nodes have other reachable nodes sometimes in a path you may not know
