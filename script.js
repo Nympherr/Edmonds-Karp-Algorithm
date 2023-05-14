@@ -39,9 +39,13 @@ class Graph{
     }
 }
 
+// Does BFS to find the path. Returns the path if it exists, otherwise returns false and algorithm stops.
 function breadthFirstSearch(startNode,endNode, graph){
+
     let queue = [];
-    let visited = new Set();  // changing to a Set for O(1) lookup
+    let visited = new Set(); 
+
+    // When end node is reached we can backtrack to find the exact path from start to finish
     let predecessor = {};
 
     if(checkIfNodeCanTravel(startNode, visited)){
@@ -54,6 +58,7 @@ function breadthFirstSearch(startNode,endNode, graph){
     while(queue.length > 0){
         let node = queue.shift();
 
+        // when end node is reached it backtracks to find the path
         if(node.id == endNode.id){
             let path = [];
             let currentNode = endNode.id;
@@ -63,7 +68,7 @@ function breadthFirstSearch(startNode,endNode, graph){
             }
             return path;
         }
-
+        // checks all the neighbours of the node and if they are available to travel to, it adds them to the queue and marks as visited
         for(let key in node.adjacent){
             if(!visited.has(key)){
                 let neighbourNode = graph.getNode(key);
@@ -75,14 +80,16 @@ function breadthFirstSearch(startNode,endNode, graph){
             }
         }
     }
+    // returns false when there are no more nodes to check and end was not reache
     return false;
 }
 
+// Checks if a node has any edges that can be travelled to. Different rules are set for forward and reverse edges
 function checkIfNodeCanTravel(node, visitedArray){
 
     for(let key in node.adjacent){
         let edge = node.adjacent[key];
-        
+
         // For forward edges
         if (edge.capacity > 0 && edge.capacity > edge.flow && !visitedArray.has(key)) {
             return true;
@@ -95,6 +102,7 @@ function checkIfNodeCanTravel(node, visitedArray){
     return false;
 }
 
+// Checks the path and finds the edge with the lowest available capacity value
 function findPathLowestValue(path,graph){
     let lowestValue = Infinity;
     for(let i = 0; i < path.length - 1; i++){
@@ -110,6 +118,7 @@ function findPathLowestValue(path,graph){
     return lowestValue;
 }
 
+// Changes the value of edges in the path
 function updatePathFlowValue(path,graph,lowestValue){
 
     for(let i = 0; i < path.length - 1; i++){
@@ -129,6 +138,8 @@ function updatePathFlowValue(path,graph,lowestValue){
     maximumFlow += lowestValue;
 }
 
+
+// Main function which starts the algorithm and iterates until no valid path exists.
 function startAlgorithm(graph, sourceId, destinationId) {
 
     let source = graph.getNode(sourceId);
@@ -197,6 +208,9 @@ function startAlgorithm(graph, sourceId, destinationId) {
 // #3
 
 let Graph1 = new Graph();
+
+
+// ("First node name", "Second node name", "Capacity from first to second node")
 
 Graph1.addEdge('1','2',4);
 Graph1.addEdge('1','3',5);
